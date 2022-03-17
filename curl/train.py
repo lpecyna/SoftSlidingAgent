@@ -8,6 +8,7 @@ import copy
 from curl import utils
 from curl.logger import Logger
 
+#from curl.curl_sac import CurlSacAgent
 from curl.curl_sac import CurlSacAgent
 from curl.default_config import DEFAULT_CONFIG
 
@@ -54,7 +55,7 @@ def run_task(vv, log_dir=None, exp_name=None):
     main(vv_to_args(updated_vv))
 
 
-def get_info_stats(infos):
+def get_info_stats_ORIGINAL(infos):
     # infos is a list with N_traj x T entries
     N = len(infos)
     T = len(infos[0])
@@ -70,6 +71,29 @@ def get_info_stats(infos):
         stat_dict[key + '_final'] = np.mean(stat_dict_all[key][:, -1])
     return stat_dict
 
+def get_info_stats(infos):
+
+    # infos is a list with N_traj x T entries
+    N = len(infos)# amount of episodes
+    stat_dict = {}
+    sum_all = {key: 0 for key in infos[0][0].keys()}
+    sum_final = {key: 0 for key in infos[0][0].keys()}
+    count = 0
+    for i, info_ep in enumerate(infos):
+        T = len(info_ep)
+        count += T
+        for j, info in enumerate(info_ep):  # lenght of episode
+            for key, val in info.items():
+                sum_all[key] += val
+                if j == T-1:
+                    #print("key", key)
+                    sum_final[key] += val
+    #print("Sum final: ", sum_final)
+    for key in infos[0][0].keys():
+        stat_dict[key + '_mean'] = sum_all[key]/count
+        stat_dict[key + '_final'] = sum_final[key]/N
+    return stat_dict
+
 
 def evaluate(env, agent, video_dir, num_episodes, L, step, args):
     all_ep_rewards = []
@@ -81,11 +105,13 @@ def evaluate(env, agent, video_dir, num_episodes, L, step, args):
         all_frames = []
         plt.figure()
         for i in range(num_episodes):
+            #print("Running evaluation loop")
             obs = env.reset()
             done = False
             episode_reward = 0
             ep_info = []
-            frames = [env.get_image(128, 128)]
+            if args.save_video == "True":
+                frames = [env.get_image(128, 128)]
             rewards = []
             while not done:
                 # center crop image
@@ -99,19 +125,28 @@ def evaluate(env, agent, video_dir, num_episodes, L, step, args):
                 obs, reward, done, info = env.step(action)
                 episode_reward += reward
                 ep_info.append(info)
-                frames.append(env.get_image(128, 128))
+                if args.save_video == "True":
+                    frames.append(env.get_image(128, 128))
                 rewards.append(reward)
+            if args.save_video == "True":
+                len_done = len(rewards)
+                if len_done < env.horizon:
+                    last_frame = env.get_image(128, 128)
+                    for j in range(env.horizon-len_done):
+                        frames.append(last_frame)  # np.zeros([128, 128, 3]))
             plt.plot(range(len(rewards)), rewards)
-            if len(all_frames) < 8:
-                all_frames.append(frames)
+            if args.save_video == "True":
+                if len(all_frames) < 8:
+                    all_frames.append(frames)
             infos.append(ep_info)
-
             L.log('eval/' + prefix + 'episode_reward', episode_reward, step)
             all_ep_rewards.append(episode_reward)
         plt.savefig(os.path.join(video_dir, '%d.png' % step))
-        all_frames = np.array(all_frames).swapaxes(0, 1)
-        all_frames = np.array([make_grid(np.array(frame), nrow=2, padding=3) for frame in all_frames])
-        save_numpy_as_gif(all_frames, os.path.join(video_dir, '%d.gif' % step))
+        #print(np.shape(all_frames))
+        if args.save_video == "True":
+            all_frames = np.array(all_frames).swapaxes(0, 1)
+            all_frames = np.array([make_grid(np.array(frame), nrow=2, padding=3) for frame in all_frames])
+            save_numpy_as_gif(all_frames, os.path.join(video_dir, '%d.gif' % step), fps=12.5)
 
         for key, val in get_info_stats(infos).items():
             L.log('eval/info_' + prefix + key, val, step)
@@ -220,22 +255,30 @@ def main(args):
         # evaluate agent periodically
 
         if step % args.eval_freq == 0:
+            #print("EVALUATION:")
+            L.log('eval/step', step, step)
             L.log('eval/episode', episode, step)
             evaluate(env, agent, video_dir, args.num_eval_episodes, L, step, args)
             if args.save_model and (step % (args.eval_freq * 5) == 0):
                 agent.save(model_dir, step)
             if args.save_buffer:
                 replay_buffer.save(buffer_dir)
+            if done == False:  # ADDED here, it seems it was missing
+                obs = env.reset()
         if done:
             if step > 0:
+                L.log('train/step', step, step)
+                #print("DONE true and step>0, Reward: ", episode_reward)
                 if step % args.log_interval == 0:
                     L.log('train/duration', time.time() - start_time, step)
                     for key, val in get_info_stats([ep_info]).items():
                         L.log('train/info_' + key, val, step)
-                    L.dump(step)
+                    L.dump(step)  # removed here, moved below
                 start_time = time.time()
             if step % args.log_interval == 0:
                 L.log('train/episode_reward', episode_reward, step)
+                #if step > 0:  # moved here from above:
+                    #L.dump(step)
 
             obs = env.reset()
             done = False
@@ -248,17 +291,25 @@ def main(args):
 
         # sample action for data collection
         if step < args.init_steps:
+            #print("Running init training loop")
             action = env.action_space.sample()
+            #action = np.array([2, 2, 0])
         else:
             with utils.eval_mode(agent):
+                #print("Running training loop - after ini")
                 action = agent.sample_action(obs)
+                #print("action!!!!!!!!!!!!:", action)
 
         # run training update
         if step >= args.init_steps:
             num_updates = 1
             for _ in range(num_updates):
                 agent.update(replay_buffer, L, step)
+        #action[2] = action[2]*2
         next_obs, reward, done, info = env.step(action)
+        #print("Action ext: ", action)
+        #print("Reward ext: ", reward)
+        #print("Obs ext: ", next_obs)
 
         # allow infinit bootstrap
         ep_info.append(info)

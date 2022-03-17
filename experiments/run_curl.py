@@ -7,6 +7,7 @@ reward_scales = {
     'ClothFlatten': 50.0,
     'ClothDrop': 50.0,
     'RopeFlatten': 50.0,
+    'RopeFollow': 50.0,
 }
 
 clip_obs = {
@@ -16,6 +17,7 @@ clip_obs = {
     'ClothFlatten': (-2, 2),
     'ClothDrop': None,
     'RopeFlatten': None,
+    'RopeFollow': None,
 }
 
 
@@ -52,13 +54,16 @@ def main():
     parser = argparse.ArgumentParser()
     # Experiment
     parser.add_argument('--exp_name', default='CURL_SAC', type=str)
-    parser.add_argument('--env_name', default='ClothFlatten')
+    #parser.add_argument('--env_name', default='ClothFlatten')
+    #parser.add_argument('--env_name', default='RopeFlatten')
+    #parser.add_argument('--env_name', default='PourWater')
+    parser.add_argument('--env_name', default='RopeFollow')
     parser.add_argument('--log_dir', default='./data/curl/')
     parser.add_argument('--test_episodes', default=10, type=int)
     parser.add_argument('--seed', default=100, type=int)
     parser.add_argument('--save_tb', default=False)  # Save stats to tensorbard
     parser.add_argument('--save_video', default=True)
-    parser.add_argument('--save_model', default=True)  # Save trained models
+    parser.add_argument('--save_model', default=False)  # Save trained models
 
     # CURL
     parser.add_argument('--alpha_fixed', default=False, type=bool)  # Automatic tuning of alpha
@@ -73,6 +78,7 @@ def main():
 
     args = parser.parse_args()
 
+
     args.algorithm = 'CURL'
 
     # Set env_specific parameters
@@ -84,7 +90,8 @@ def main():
     args.scale_reward = reward_scales[env_name]
     args.clip_obs = clip_obs[env_name] if obs_mode == 'key_point' else None
     args.env_kwargs = env_arg_dict[env_name]
-
+    print(args.env_kwargs['num_variations'])
+    args.env_kwargs['num_variations'] = 1000  ##################
     run_task(args.__dict__, args.log_dir, args.exp_name)
 
 

@@ -302,7 +302,7 @@ class CurlSacAgent(object):
       device,
       args,
       hidden_dim=256,
-      discount=0.99,
+      discount=0.99, #  0.99,#changed
       init_temperature=0.01,
       alpha_lr=1e-3,
       alpha_beta=0.9,
@@ -327,6 +327,7 @@ class CurlSacAgent(object):
       detach_encoder=False,
       curl_latent_dim=128
     ):
+        #print("Frequency:             ", critic_target_update_freq)
         self.args = args
         self.device = device
         self.discount = discount

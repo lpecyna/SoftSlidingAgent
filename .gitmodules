@@ -1,4 +1,4 @@
-[submodule "softgym"]
+[submodule "Softgym_rope_following"]
 	path = softgym
-	url = https://github.com/Xingyu-Lin/softgym.git
+	url = https://github.com/lpecyna/Softgym_rope_following.git
 
