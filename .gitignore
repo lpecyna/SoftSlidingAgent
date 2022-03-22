@@ -1,4 +1,4 @@
-/data/
+/data/*
 /experiments/run_curl_loop.py
 /curl/train (copy).py
 /curl/trainArch1.py
