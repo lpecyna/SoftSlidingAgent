@@ -38,7 +38,7 @@ Generally, the agent is supposed to slide along the rope - using an appropriate 
 
 | Image                                    | Name                                                                                               | Description                             |
 |------------------------------------------|:---------------------------------------------------------------------------------------------------|:----------------------------------------|
-| ![Gif](https://github.com/lpecyna/Softgym_rope_following/examples/ClothDrop.gif) | [Rope following](https://github.com/lpecyna/Softgym_rope_following/softgym/envs/rope_following.py) | Correctly perfromed rope following task |
+| ![Gif](./examples/Reach_end_hold.gif) | [Rope following](https://github.com/lpecyna/Softgym_rope_following/softgym/envs/rope_following.py) | Correctly perfromed rope following task |
 
 ## Cite
 If you find this codebase useful in your research, please consider citing:
