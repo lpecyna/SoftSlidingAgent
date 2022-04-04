@@ -1,4 +1,4 @@
-# SoftSlidingGym - Agent
+# Agent for SoftSlidingGym
 This repository contains modified benchmarked reinforcment learning algorithms for difformable linear object (DLO) following environment from [SoftSlidingGym](https://github.com/lpecyna/SoftSlidingGym) ([paper](https://arxiv.org/abs/2204.00117)). They were adapted for this specific task based on the algorithms in [SoftAgent](https://github.com/Xingyu-Lin/softagent) repository.
 
 The benchmarked algorithms currently include only Soft Actor-Critic algorithm:
