@@ -54,9 +54,6 @@ def main():
     parser = argparse.ArgumentParser()
     # Experiment
     parser.add_argument('--exp_name', default='CURL_SAC', type=str)
-    #parser.add_argument('--env_name', default='ClothFlatten')
-    #parser.add_argument('--env_name', default='RopeFlatten')
-    #parser.add_argument('--env_name', default='PourWater')
     parser.add_argument('--env_name', default='RopeFollow')
     parser.add_argument('--log_dir', default='./data/curl/')
     parser.add_argument('--test_episodes', default=10, type=int)
@@ -91,7 +88,7 @@ def main():
     args.clip_obs = clip_obs[env_name] if obs_mode == 'key_point' else None
     args.env_kwargs = env_arg_dict[env_name]
     print(args.env_kwargs['num_variations'])
-    args.env_kwargs['num_variations'] = 1000  ##################
+    args.env_kwargs['num_variations'] = 1000
     run_task(args.__dict__, args.log_dir, args.exp_name)
 
 

@@ -82,13 +82,11 @@ def get_info_stats(infos):
     for i, info_ep in enumerate(infos):
         T = len(info_ep)
         count += T
-        for j, info in enumerate(info_ep):  # lenght of episode
+        for j, info in enumerate(info_ep):  # length of episode
             for key, val in info.items():
                 sum_all[key] += val
                 if j == T-1:
-                    #print("key", key)
                     sum_final[key] += val
-    #print("Sum final: ", sum_final)
     for key in infos[0][0].keys():
         stat_dict[key + '_mean'] = sum_all[key]/count
         stat_dict[key + '_final'] = sum_final[key]/N
@@ -132,7 +130,7 @@ def evaluate(env, agent, video_dir, num_episodes, L, step, args):
                 len_done = len(rewards)
                 if len_done < env.horizon:
                     last_frame = env.get_image(128, 128)
-                    for j in range(env.horizon-len_done):
+                    for j in range(env.horizon-len_done):  # if finishes earlier add last or empty frames
                         frames.append(last_frame)  # np.zeros([128, 128, 3]))
             plt.plot(range(len(rewards)), rewards)
             if args.save_video == "True":
@@ -142,7 +140,6 @@ def evaluate(env, agent, video_dir, num_episodes, L, step, args):
             L.log('eval/' + prefix + 'episode_reward', episode_reward, step)
             all_ep_rewards.append(episode_reward)
         plt.savefig(os.path.join(video_dir, '%d.png' % step))
-        #print(np.shape(all_frames))
         if args.save_video == "True":
             all_frames = np.array(all_frames).swapaxes(0, 1)
             all_frames = np.array([make_grid(np.array(frame), nrow=2, padding=3) for frame in all_frames])
@@ -255,7 +252,6 @@ def main(args):
         # evaluate agent periodically
 
         if step % args.eval_freq == 0:
-            #print("EVALUATION:")
             L.log('eval/step', step, step)
             L.log('eval/episode', episode, step)
             evaluate(env, agent, video_dir, args.num_eval_episodes, L, step, args)
@@ -267,8 +263,7 @@ def main(args):
                 obs = env.reset()
         if done:
             if step > 0:
-                L.log('train/step', step, step)
-                #print("DONE true and step>0, Reward: ", episode_reward)
+                #  L.log('train/step', step, step)  # To monitor the step
                 if step % args.log_interval == 0:
                     L.log('train/duration', time.time() - start_time, step)
                     for key, val in get_info_stats([ep_info]).items():
@@ -277,8 +272,6 @@ def main(args):
                 start_time = time.time()
             if step % args.log_interval == 0:
                 L.log('train/episode_reward', episode_reward, step)
-                #if step > 0:  # moved here from above:
-                    #L.dump(step)
 
             obs = env.reset()
             done = False
@@ -291,25 +284,17 @@ def main(args):
 
         # sample action for data collection
         if step < args.init_steps:
-            #print("Running init training loop")
             action = env.action_space.sample()
-            #action = np.array([2, 2, 0])
         else:
             with utils.eval_mode(agent):
-                #print("Running training loop - after ini")
                 action = agent.sample_action(obs)
-                #print("action!!!!!!!!!!!!:", action)
 
         # run training update
         if step >= args.init_steps:
             num_updates = 1
             for _ in range(num_updates):
                 agent.update(replay_buffer, L, step)
-        #action[2] = action[2]*2
         next_obs, reward, done, info = env.step(action)
-        #print("Action ext: ", action)
-        #print("Reward ext: ", reward)
-        #print("Obs ext: ", next_obs)
 
         # allow infinit bootstrap
         ep_info.append(info)
