@@ -7,9 +7,9 @@ The benchmarked algorithms currently include only Soft Actor-Critic algorithm:
 
 ## Installation 
 
-1. Install "SoftSlidingGym" by following the instructions in [SoftSlidingGym](https://github.com/lpecyna/SoftSlidingGym) repository. Then, copy the "SoftSlidingGym" code to softgym folder in the SoftAgent root directory so we have the following file structure:
+1. Install "SoftSlidingGym" by following the instructions in [SoftSlidingGym](https://github.com/lpecyna/SoftSlidingGym) repository. Then, copy the "SoftSlidingGym" code to softgym folder in the SoftSlidingAgent root directory so we have the following file structure:
     ```
-    Softagent_rope_followig
+    SoftSlidingAgent
     ├── curl
     ├── ...
     ├── softgym
