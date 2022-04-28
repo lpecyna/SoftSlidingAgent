@@ -88,7 +88,7 @@ def main():
     args.clip_obs = clip_obs[env_name] if obs_mode == 'key_point' else None
     args.env_kwargs = env_arg_dict[env_name]
     print(args.env_kwargs['num_variations'])
-    args.env_kwargs['num_variations'] = 10
+    args.env_kwargs['num_variations'] = 1000
     run_task(args.__dict__, args.log_dir, args.exp_name)
 
 
